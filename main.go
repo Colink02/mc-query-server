@@ -80,13 +80,16 @@ func serve(conn net.Conn) {
 			return
 		}
 		packetId, _ := ReadVarInt(reader)
+		println("Packet Id is: ", packetId)
 		// Read the incoming connection into the buffer.
 		if state == 0 {
-			println("Received a Handshake")
-			var done bool
-			state, done = getHandshake(conn, state, *reader)
-			if done {
-				println("Done with handshake")
+			if packetId == 0x00 {
+				println("Received a Handshake")
+				var done bool
+				state, done = getHandshake(conn, state, *reader)
+				if done {
+					println("Done with handshake")
+				}
 			}
 		} else if state == 1 {
 			if packetId == 0x00 {
@@ -116,7 +119,11 @@ func sendPing(conn net.Conn, reader bufio.Reader) bool {
 	}
 	ping, _ := ReadVarLong(&reader)
 	err = WriteVarLong(packet, ping)
-	conn.Write(packet.Bytes())
+	write, err := conn.Write(packet.Bytes())
+	println("Wrote ", write, " Bytes")
+	if err != nil {
+		return false
+	}
 	if err != nil {
 		println(err)
 		return false
@@ -164,8 +171,8 @@ func getHandshake(conn net.Conn, state int32, reader bufio.Reader) (int32, bool)
 func sendStatus(conn net.Conn) bool {
 	println("Got a packet from ", conn.RemoteAddr().String())
 
-	packet := bytes.NewBuffer(make([]byte, 1024))
-	err := WriteVarInt(packet, VarInt(0))
+	var packet bytes.Buffer
+	err := WriteVarInt(&packet, VarInt(0))
 	if err != nil {
 		println(err)
 		return true
@@ -189,15 +196,16 @@ func sendStatus(conn net.Conn) bool {
 		log.Fatal(err)
 	}
 
-	err = WriteString(packet, string(b))
+	err = WriteString(&packet, string(b))
 	println("String: ", string(b))
 	if err != nil {
-		return true
+		println("Error", err.Error())
+		return false
 	}
 	_, writeErr := conn.Write(packet.Bytes())
 	if writeErr != nil {
 		println(writeErr.Error())
-		return true
+		return false
 	}
-	return false
+	return true
 }
