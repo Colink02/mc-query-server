@@ -46,9 +46,6 @@ type Handshake struct {
 
 var config = readConfig()
 
-// ------------ Editable Variables ------------
-var verbose = false
-
 func main() {
 
 	// Create a new UDP connection handler
