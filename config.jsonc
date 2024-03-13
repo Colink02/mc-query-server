@@ -1,0 +1,22 @@
+{
+  "verbose": false,
+  "listener": {
+    "host": "localhost:25567"
+  },
+  "query": {
+    "version": {
+        "protocol": 765,
+        "name": "1.20.4"
+    },
+    "players": {
+      "max": 20,
+      "online": 0,
+      "sample": []
+    },
+    // Supports Both Text Components and MOTD Strings
+    "description": {
+      "color": "red",
+      "text": "A Minecraft Server"
+    }
+  }
+}
