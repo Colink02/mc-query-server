@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/tailscale/hujson"
 )
@@ -69,6 +70,11 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
+			err := conn.SetDeadline(time.Now().Add(2 * time.Second))
+			if err != nil {
+				log.Println("Error setting deadline: ", err.Error())
+				return
+			}
 			log.Println("Connection error: ", err.Error())
 			return
 		}
@@ -167,6 +173,7 @@ func getHandshake(conn net.Conn, reader bufio.Reader) (int32, bool) {
 	if config.Verbose {
 		log.Println("Got a handshake from ", conn.RemoteAddr().String())
 	}
+	sendStatus(conn)
 	return int32(handshake.NextState), true
 }
 
